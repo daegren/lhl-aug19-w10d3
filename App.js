@@ -1,13 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import MyCoolComponent from './src/MyCoolComponent'
+import SearchBar from './src/SearchBar';
+import ImageList from './src/ImageList';
 
 export default function App() {
+  const [images, setImages] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    const url = `https://reddit.com/r/aww/search.json?q=${searchTerm}&restrict_sr=true&type=link`
+    if (!searchTerm) { return }
+
+    console.log('fetching', url)
+
+    fetch(url)
+      .then(resp => resp.json())
+      .then(json => {
+        const items = json.data.children
+        const images = items.map(child => ({
+          id: child.data.id,
+          src: child.data.thumbnail
+        }))
+        setImages(images);
+      })
+  }, [searchTerm])
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Open up App.js to start working on your app!</Text>
-      <Text style={styles.text}>Open up App.js to start working on your app!</Text>
-      <MyCoolComponent />
+      <SearchBar search={term => setSearchTerm(term)} />
+      <ImageList images={images} />
     </View>
   );
 }
@@ -16,17 +37,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row'
-  },
-  text: {
-    flex: 1,
-    padding: 5,
-    margin: 10,
-    borderColor: '#000',
-    borderWidth: 1,
-    borderRadius: 5,
-    backgroundColor: 'red'
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    marginTop: 20
   }
 });
